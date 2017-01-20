@@ -227,7 +227,7 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
         }
         mHandler.removeCallbacksAndMessages(null);
         if (query != null && !query.isEmpty()) {
-            String coloredText = StringUtils.SearchAndColor(mOriginalText, query);
+            String coloredText = StringUtils.searchAndColor(mOriginalText, query);
             mTextPreview.setText(Html.fromHtml(coloredText.replace("\n", "<br \\>")));
         } else {
             mTextPreview.setText(mOriginalText);
@@ -250,7 +250,7 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
             @Override
             public void run() {
                 if (newText != null && !newText.isEmpty()) {
-                    String coloredText = StringUtils.SearchAndColor(mOriginalText, newText);
+                    String coloredText = StringUtils.searchAndColor(mOriginalText, newText);
                     mTextPreview.setText(Html.fromHtml(coloredText.replace("\n", "<br \\>")));
                 } else {
                     mTextPreview.setText(mOriginalText);
