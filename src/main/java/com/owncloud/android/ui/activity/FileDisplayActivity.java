@@ -202,8 +202,13 @@ public class FileDisplayActivity extends HookActivity
     private MediaServiceConnection mMediaServiceConnection = null;
 
     private String searchQuery;
+    public static final String KEY_IS_SEARCH_OPEN = "IS_SEARCH_OPEN";
+    public static final String KEY_SEARCH_QUERY = "SEARCH_QUERY";
 
-    private SearchView searchView;
+    private String mSearchQuery;
+    private boolean mSearchOpen;
+
+    private SearchView mSearchView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -219,6 +224,10 @@ public class FileDisplayActivity extends HookActivity
             mSyncInProgress = savedInstanceState.getBoolean(KEY_SYNC_IN_PROGRESS);
             mWaitingToSend = savedInstanceState.getParcelable(FileDisplayActivity.KEY_WAITING_TO_SEND);
             searchQuery = savedInstanceState.getString(KEY_SEARCH_QUERY);
+            mSearchOpen = savedInstanceState.getBoolean(FileDisplayActivity.KEY_IS_SEARCH_OPEN, false);
+            if (savedInstanceState.getString(FileDisplayActivity.KEY_SEARCH_QUERY) != null) {
+                mSearchQuery = savedInstanceState.getString(FileDisplayActivity.KEY_SEARCH_QUERY);
+            }
         } else {
             mWaitingToPreview = null;
             mSyncInProgress = false;
@@ -763,14 +772,14 @@ public class FileDisplayActivity extends HookActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.main_menu, menu);
         menu.findItem(R.id.action_create_dir).setVisible(false);
 
         menu.findItem(R.id.action_select_all).setVisible(false);
-        final MenuItem item = menu.findItem(R.id.action_search);
-        searchView = (SearchView) MenuItemCompat.getActionView(item);
+        MenuItem searchMenuItem = menu.findItem(R.id.action_search);
+        mSearchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
+        searchMenuItem.setVisible(false);
 
         // hacky as no default way is provided
         int fontColor = ThemeUtils.fontColor(this);
@@ -846,7 +855,7 @@ public class FileDisplayActivity extends HookActivity
             }
         });
 
-        return true;
+        return super.onCreateOptionsMenu(menu);
     }
 
 
@@ -1173,9 +1182,11 @@ public class FileDisplayActivity extends HookActivity
         //outState.putBoolean(FileDisplayActivity.KEY_REFRESH_SHARES_IN_PROGRESS,
         // mRefreshSharesInProgress);
         outState.putParcelable(FileDisplayActivity.KEY_WAITING_TO_SEND, mWaitingToSend);
-        if (searchView != null) {
-            outState.putString(KEY_SEARCH_QUERY, searchView.getQuery().toString());
+        outState.putBoolean(KEY_IS_SEARCH_OPEN, !mSearchView.isIconified());
+        if (mSearchQuery != null) {
+            outState.putString(KEY_SEARCH_QUERY, mSearchQuery);
         }
+
         Log_OC.v(TAG, "onSaveInstanceState() end");
     }
 
@@ -2347,6 +2358,10 @@ public class FileDisplayActivity extends HookActivity
             Bundle args = new Bundle();
             args.putParcelable(EXTRA_FILE, file);
             args.putParcelable(EXTRA_ACCOUNT, getAccount());
+            args.putBoolean(EXTRA_SEARCH, mSearchOpen);
+            if (mSearchQuery != null) {
+                args.putString(EXTRA_SEARCH_QUERY, mSearchQuery);
+            }
             Fragment textPreviewFragment = Fragment.instantiate(getApplicationContext(),
                     PreviewTextFragment.class.getName(), args);
             setSecondFragment(textPreviewFragment);
@@ -2490,5 +2505,9 @@ public class FileDisplayActivity extends HookActivity
         super.onRestart();
 
         checkForNewDevVersionNecessary(findViewById(R.id.root_layout), getApplicationContext());
+    }
+
+    public void setSearchQuery(String query) {
+        mSearchQuery = query;
     }
 }

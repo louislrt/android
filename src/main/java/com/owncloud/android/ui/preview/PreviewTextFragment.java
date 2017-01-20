@@ -89,6 +89,9 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
     protected ProgressBar mMultiListProgress;
 
 
+    private String mSearchQuery;
+    private boolean mSearchOpen;
+
     /**
      * Creates an empty fragment for previews.
      *
@@ -150,6 +153,7 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
 
         OCFile file = getFile();
 
@@ -163,6 +167,14 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
             mAccount = args.getParcelable(FileDisplayActivity.EXTRA_ACCOUNT);
         }
 
+        if (args.containsKey(FileDisplayActivity.EXTRA_SEARCH_QUERY)) {
+            mSearchQuery = args.getString(FileDisplayActivity.EXTRA_SEARCH_QUERY);
+        }
+
+        if (args.getBoolean(FileDisplayActivity.EXTRA_SEARCH)) {
+            mSearchOpen = args.getBoolean(FileDisplayActivity.EXTRA_SEARCH, false);
+        }
+
         if (savedInstanceState == null) {
             if (file == null) {
                 throw new IllegalStateException("Instanced with a NULL OCFile");
@@ -170,6 +182,7 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
             if (mAccount == null) {
                 throw new IllegalStateException("Instanced with a NULL ownCloud Account");
             }
+
         } else {
             file = savedInstanceState.getParcelable(EXTRA_FILE);
             mAccount = savedInstanceState.getParcelable(EXTRA_ACCOUNT);
@@ -177,7 +190,6 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
 
         mHandler = new Handler();
         setFile(file);
-        setHasOptionsMenu(true);
     }
 
     /**
@@ -199,7 +211,7 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
     }
 
 
-        private void loadAndShowTextPreview() {
+    private void loadAndShowTextPreview() {
         mTextLoadTask = new TextLoadAsyncTask(new WeakReference<>(mTextPreview));
         mTextLoadTask.execute(getFile().getStoragePath());
     }
@@ -207,6 +219,10 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
 
     @Override
     public boolean onQueryTextSubmit(String query) {
+        if (getActivity().getClass().equals(FileDisplayActivity.class)) {
+            FileDisplayActivity fileDisplayActivity = (FileDisplayActivity) getActivity();
+            fileDisplayActivity.setSearchQuery(query);
+        }
         mHandler.removeCallbacksAndMessages(null);
         if (query != null && !query.isEmpty()) {
             String coloredText = StringUtils.SearchAndColor(mOriginalText, query);
@@ -223,6 +239,10 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
 
     @Override
     public boolean onQueryTextChange(final String newText) {
+        if (getActivity().getClass().equals(FileDisplayActivity.class)) {
+            FileDisplayActivity fileDisplayActivity = (FileDisplayActivity) getActivity();
+            fileDisplayActivity.setSearchQuery(newText);
+        }
         mHandler.removeCallbacksAndMessages(null);
         mHandler.postDelayed(new Runnable() {
             @Override
@@ -307,7 +327,11 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
 
             if (textView != null) {
                 mOriginalText = new String(stringWriter.getBuffer());
+                mSearchView.setOnQueryTextListener(PreviewTextFragment.this);
                 textView.setText(mOriginalText);
+                if (mSearchQuery != null && mSearchOpen) {
+                    mSearchView.setQuery(mSearchQuery, true);
+                }
                 textView.setVisibility(View.VISIBLE);
             }
 
@@ -330,7 +354,14 @@ public class PreviewTextFragment extends FileFragment implements SearchView.OnQu
         MenuItem menuItem = menu.findItem(R.id.action_search);
         menuItem.setVisible(true);
         mSearchView = (SearchView) MenuItemCompat.getActionView(menuItem);
-        mSearchView.setOnQueryTextListener(this);
+
+        if (mSearchOpen) {
+            if (mSearchQuery != null) {
+                mSearchView.setQuery(mSearchQuery, false);
+            }
+            mSearchView.setIconified(false);
+            mSearchView.clearFocus();
+        }
 
     }
 
