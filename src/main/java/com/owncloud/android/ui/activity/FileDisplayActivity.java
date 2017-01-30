@@ -55,6 +55,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.SearchView;
 import android.text.TextUtils;
@@ -776,8 +777,14 @@ public class FileDisplayActivity extends HookActivity
 
         menu.findItem(R.id.action_select_all).setVisible(false);
         MenuItem searchMenuItem = menu.findItem(R.id.action_search);
-        mSearchView = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
+        mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
         searchMenuItem.setVisible(false);
+
+        if (mSearchOpen) {
+            mSearchView.setQuery(mSearchQuery, false);
+            mSearchView.setIconified(false);
+            mSearchView.clearFocus();
+        }
 
         // hacky as no default way is provided
         int fontColor = ThemeUtils.fontColor(this);
