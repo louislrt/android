@@ -780,12 +780,6 @@ public class FileDisplayActivity extends HookActivity
         mSearchView = (SearchView) MenuItemCompat.getActionView(menu.findItem(R.id.action_search));
         searchMenuItem.setVisible(false);
 
-        if (mSearchOpen) {
-            mSearchView.setQuery(mSearchQuery, false);
-            mSearchView.setIconified(false);
-            mSearchView.clearFocus();
-        }
-
         // hacky as no default way is provided
         int fontColor = ThemeUtils.fontColor(this);
         EditText editText = searchView.findViewById(android.support.v7.appcompat.R.id.search_src_text);
