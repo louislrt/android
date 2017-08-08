@@ -92,8 +92,6 @@ public abstract class FileActivity extends DrawerActivity
     public static final String APP_OPENED_COUNT = "APP_OPENED_COUNT";
     public static final String EXTRA_SEARCH = "com.owncloud.android.ui.activity.SEARCH";
     public static final String EXTRA_SEARCH_QUERY = "com.owncloud.android.ui.activity.SEARCH_QUERY";
-    public static final String EXTRA_FROM_NOTIFICATION =
-            "com.owncloud.android.ui.activity.FROM_NOTIFICATION";
 
     public static final String TAG = FileActivity.class.getSimpleName();
 

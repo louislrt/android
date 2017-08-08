@@ -22,12 +22,8 @@ package com.owncloud.android.ui.preview;
 import android.accounts.Account;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-
 import android.os.Handler;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
+import android.support.annotation.NonNull;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.SearchView;
 import android.text.Html;
@@ -52,9 +48,8 @@ import com.owncloud.android.ui.dialog.ConfirmationDialogFragment;
 import com.owncloud.android.ui.dialog.RemoveFilesDialogFragment;
 import com.owncloud.android.ui.fragment.FileFragment;
 import com.owncloud.android.utils.DisplayUtils;
-import com.owncloud.android.ui.helpers.StringUtils;
 import com.owncloud.android.utils.MimeTypeUtil;
-import com.owncloud.android.utils.MimeTypeUtil;
+import com.owncloud.android.utils.StringUtils;
 
 import org.mozilla.universalchardet.ReaderFactory;
 
