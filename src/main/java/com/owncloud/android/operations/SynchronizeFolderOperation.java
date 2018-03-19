@@ -51,12 +51,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 /**
- *  Remote operation performing the synchronization of the list of files contained 
+ *  Remote operation performing the synchronization of the list of files contained
  *  in a folder identified with its remote path.
- *  
- *  Fetches the list and properties of the files contained in the given folder, including their 
+ *
+ *  Fetches the list and properties of the files contained in the given folder, including their
  *  properties, and updates the local database with them.
- *  
+ *
  *  Does NOT enter in the child folders to synchronize their contents also, BUT requests for a new operation instance
  *  doing so.
  */
@@ -69,7 +69,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
 
     /** Remote path of the folder to synchronize */
     private String mRemotePath;
-    
+
     /** Account where the file to synchronize belongs */
     private Account mAccount;
 
@@ -93,9 +93,9 @@ public class SynchronizeFolderOperation extends SyncOperation {
 
     private List<OCFile> mFilesForDirectDownload;
         // to avoid extra PROPFINDs when there was no change in the folder
-    
+
     private List<SyncOperation> mFilesToSyncContents;
-        // this will be used for every file when 'folder synchronization' replaces 'folder download' 
+        // this will be used for every file when 'folder synchronization' replaces 'folder download'
 
     private final AtomicBoolean mCancellationRequested;
 
@@ -138,30 +138,30 @@ public class SynchronizeFolderOperation extends SyncOperation {
         RemoteOperationResult result = null;
         mFailsInFileSyncsFound = 0;
         mConflictsFound = 0;
-        
+
         try {
-            // get locally cached information about folder 
-            mLocalFolder = getStorageManager().getFileByPath(mRemotePath);   
-            
+            // get locally cached information about folder
+            mLocalFolder = getStorageManager().getFileByPath(mRemotePath);
+
             result = checkForChanges(client);
-    
+
             if (result.isSuccess()) {
                 if (mRemoteFolderChanged) {
                     result = fetchAndSyncRemoteFolder(client);
-                    
+
                 } else {
                     prepareOpsFromLocalKnowledge();
                 }
-                
+
                 if (result.isSuccess()) {
                     syncContents();
                 }
             }
-            
+
             if (mCancellationRequested.get()) {
                 throw new OperationCancelledException();
             }
-            
+
         } catch (OperationCancelledException e) {
             result = new RemoteOperationResult(e);
         }
@@ -174,11 +174,11 @@ public class SynchronizeFolderOperation extends SyncOperation {
 
         mRemoteFolderChanged = true;
         RemoteOperationResult result;
-        
+
         if (mCancellationRequested.get()) {
             throw new OperationCancelledException();
         }
-        
+
         // remote request
         ReadRemoteFileOperation operation = new ReadRemoteFileOperation(mRemotePath);
         result = operation.execute(client);
@@ -216,7 +216,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
         if (mCancellationRequested.get()) {
             throw new OperationCancelledException();
         }
-        
+
         ReadRemoteFolderOperation operation = new ReadRemoteFolderOperation(mRemotePath);
         RemoteOperationResult result = operation.execute(client);
         Log_OC.d(TAG, "Synchronizing " + mAccount.name + mRemotePath);
@@ -263,7 +263,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
      */
     private void synchronizeData(ArrayList<Object> folderAndFiles) throws OperationCancelledException {
         FileDataStorageManager storageManager = getStorageManager();
-        
+
         // parse data from remote folder
         OCFile remoteFolder = FileStorageUtils.fillOCFile((RemoteFile) folderAndFiles.get(0));
         remoteFolder.setParentId(mLocalFolder.getParentId());
@@ -284,7 +284,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
         List<OCFile> localFiles = storageManager.getFolderContent(mLocalFolder, false);
         Map<String, OCFile> localFilesMap = new HashMap<>(localFiles.size());
         for (OCFile file : localFiles) {
-            localFilesMap.put(file.getRemotePath(), file);
+            localFilesMap.put(file.getRemoteId(), file);
         }
 
         // loop to synchronize every child
@@ -310,7 +310,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
 
             /// check and fix, if needed, local storage path
             searchForLocalFileInDefaultPath(updatedFile);
-            
+
             /// classify file to sync/download contents later
             classifyFileForLaterSyncOrDownload(remoteFile, localFile);
 
@@ -330,6 +330,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
             updatedFile.setModificationTimestampAtLastSyncForData(
                     localFile.getModificationTimestampAtLastSyncForData()
             );
+            updatedFile.setFileName(localFile.getFileName());
             updatedFile.setStoragePath(localFile.getStoragePath());
             // eTag will not be updated unless file CONTENTS are synchronized
             updatedFile.setEtag(localFile.getEtag());
@@ -418,7 +419,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
         startContentSynchronizations(mFilesToSyncContents);
     }
 
-    
+
     private void startDirectDownloads() throws OperationCancelledException {
         for (OCFile file : mFilesForDirectDownload) {
             synchronized(mCancellationRequested) {
@@ -477,7 +478,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
      * Scans the default location for saving local copies of files searching for
      * a 'lost' file with the same full name as the {@link com.owncloud.android.datamodel.OCFile}
      * received as parameter.
-     *  
+     *
      * @param file      File to associate a possible 'lost' local file.
      */
     private void searchForLocalFileInDefaultPath(OCFile file) {
@@ -490,7 +491,7 @@ public class SynchronizeFolderOperation extends SyncOperation {
         }
     }
 
-    
+
     /**
      * Cancel operation
      */
