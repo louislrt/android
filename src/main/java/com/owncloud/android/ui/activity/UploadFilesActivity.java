@@ -62,14 +62,11 @@ import com.owncloud.android.datamodel.OCFile;
 import com.owncloud.android.db.PreferenceManager;
 import com.owncloud.android.jobs.ProcessManualUploadQueue;
 import com.owncloud.android.lib.common.utils.Log_OC;
-import com.owncloud.android.ui.dialog.ConfirmationDialogFragment;
-import com.owncloud.android.ui.dialog.ConfirmationDialogFragment.ConfirmationDialogFragmentListener;
 import com.owncloud.android.ui.dialog.IndeterminateProgressDialog;
 import com.owncloud.android.ui.dialog.SortingOrderDialogFragment;
 import com.owncloud.android.ui.fragment.ExtendedListFragment;
 import com.owncloud.android.ui.fragment.LocalFileListFragment;
 import com.owncloud.android.utils.FileSortOrder;
-import com.owncloud.android.utils.FileStorageUtils;
 import com.owncloud.android.utils.ThemeUtils;
 
 import java.io.File;
@@ -86,7 +83,7 @@ import static com.owncloud.android.db.PreferenceManager.getSortOrder;
  */
 public class UploadFilesActivity extends FileActivity implements
     LocalFileListFragment.ContainerActivity, ActionBar.OnNavigationListener,
-        OnClickListener, ConfirmationDialogFragmentListener, SortingOrderDialogFragment.OnSortingOrderListener {
+        OnClickListener, SortingOrderDialogFragment.OnSortingOrderListener {
 
     private static final String SORT_ORDER_DIALOG_TAG = "SORT_ORDER_DIALOG";
 
@@ -509,7 +506,6 @@ public class UploadFilesActivity extends FileActivity implements
                 finish();
             } else {
                 new StoreUploadTask().execute();
-                //new CheckAvailableSpaceTask().execute(mBehaviourSpinner.getSelectedItemPosition() == 0);
             }
         }
     }
@@ -580,124 +576,6 @@ public class UploadFilesActivity extends FileActivity implements
             }
             return null;
         }
-    }
-
-    /**
-     * Asynchronous task checking if there is space enough to copy all the files chosen
-     * to upload into the ownCloud local folder.
-     * 
-     * Maybe an AsyncTask is not strictly necessary, but who really knows.
-     */
-    private class CheckAvailableSpaceTask extends AsyncTask<Boolean, Void, Boolean> {
-
-        /**
-         * Updates the UI before trying the movement.
-         */
-        @Override
-        protected void onPreExecute () {
-            /// progress dialog and disable 'Move' button
-            mCurrentDialog = IndeterminateProgressDialog.newInstance(R.string.wait_a_moment, false);
-            mCurrentDialog.show(getSupportFragmentManager(), WAIT_DIALOG_TAG);
-        }
-
-        /**
-         * Checks the available space.
-         *
-         * @param params boolean flag if storage calculation should be done.
-         * @return 'True' if there is space enough or doesn't have to be calculated
-         */
-        @Override
-        protected Boolean doInBackground(Boolean... params) {
-            if(params[0]) {
-                String[] checkedFilePaths = mFileListFragment.getCheckedFilePaths();
-                long total = 0;
-                for (int i = 0; checkedFilePaths != null && i < checkedFilePaths.length; i++) {
-                    String localPath = checkedFilePaths[i];
-                    File localFile = new File(localPath);
-                    total += localFile.length();
-                }
-                return FileStorageUtils.getUsableSpace(mAccountOnCreation.name) >= total;
-            }
-
-            return true;
-        }
-
-        /**
-         * Updates the activity UI after the check of space is done.
-         *
-         * If there is not space enough. shows a new dialog to query the user if wants to move the
-         * files instead of copy them.
-         *
-         * @param result        'True' when there is space enough to copy all the selected files.
-         */
-        @Override
-        protected void onPostExecute(Boolean result) {
-            if(mCurrentDialog != null) {
-                mCurrentDialog.dismiss();
-                mCurrentDialog = null;
-            }
-            
-            if (result) {
-                // return the list of selected files (success)
-                Intent data = new Intent();
-                data.putExtra(EXTRA_CHOSEN_FILES, mFileListFragment.getCheckedFilePaths());
-
-                // set result code
-                switch (mBehaviourSpinner.getSelectedItemPosition()) {
-                    case 0: // move to nextcloud folder
-                        setResult(RESULT_OK_AND_MOVE, data);
-                        break;
-
-                    case 1: // only upload
-                        setResult(RESULT_OK_AND_DO_NOTHING, data);
-                        break;
-
-                    case 2: // upload and delete from source
-                        setResult(RESULT_OK_AND_DELETE, data);
-                        break;
-                }
-
-                // store behaviour
-                PreferenceManager.setUploaderBehaviour(getApplicationContext(),
-                        mBehaviourSpinner.getSelectedItemPosition());
-
-                finish();
-            } else {
-                // show a dialog to query the user if wants to move the selected files
-                // to the ownCloud folder instead of copying
-                String[] args = {getString(R.string.app_name)};
-                ConfirmationDialogFragment dialog = ConfirmationDialogFragment.newInstance(
-                    R.string.upload_query_move_foreign_files, args, 0, R.string.common_yes, -1,
-                        R.string.common_no
-                );
-                dialog.setOnConfirmationListener(UploadFilesActivity.this);
-                dialog.show(getSupportFragmentManager(), QUERY_TO_MOVE_DIALOG_TAG);
-            }
-        }
-    }
-
-    @Override
-    public void onConfirmation(String callerTag) {
-        Log_OC.d(TAG, "Positive button in dialog was clicked; dialog tag is " + callerTag);
-        if (callerTag.equals(QUERY_TO_MOVE_DIALOG_TAG)) {
-            // return the list of selected files to the caller activity (success),
-            // signaling that they should be moved to the ownCloud folder, instead of copied
-            Intent data = new Intent();
-            data.putExtra(EXTRA_CHOSEN_FILES, mFileListFragment.getCheckedFilePaths());
-            setResult(RESULT_OK_AND_MOVE, data);
-            finish();
-        }
-    }
-
-    @Override
-    public void onNeutral(String callerTag) {
-        Log_OC.d(TAG, "Phantom neutral button in dialog was clicked; dialog tag is " + callerTag);
-    }
-
-    @Override
-    public void onCancel(String callerTag) {
-        /// nothing to do; don't finish, let the user change the selection
-        Log_OC.d(TAG, "Negative button in dialog was clicked; dialog tag is " + callerTag);
     }
 
     @Override
