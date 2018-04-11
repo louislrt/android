@@ -951,23 +951,10 @@ public class FileDisplayActivity extends HookActivity
 
             requestUploadOfContentFromApps(data, resultCode);
 
-        } else if (requestCode == REQUEST_CODE__SELECT_FILES_FROM_FILE_SYSTEM &&
-                (resultCode == RESULT_OK ||
-                        resultCode == UploadFilesActivity.RESULT_OK_AND_MOVE ||
-                        resultCode == UploadFilesActivity.RESULT_OK_AND_DO_NOTHING ||
-                        resultCode == UploadFilesActivity.RESULT_OK_AND_DELETE)) {
-
-            requestUploadOfFilesFromFileSystem(data, resultCode);
-
         } else if (requestCode == REQUEST_CODE__MOVE_FILES && resultCode == RESULT_OK) {
             final Intent fData = data;
             getHandler().postDelayed(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            requestMoveOperation(fData);
-                        }
-                    },
+                    () -> requestMoveOperation(fData),
                     DELAY_TO_REQUEST_OPERATIONS_LATER
             );
 
@@ -975,12 +962,7 @@ public class FileDisplayActivity extends HookActivity
 
             final Intent fData = data;
             getHandler().postDelayed(
-                    new Runnable() {
-                        @Override
-                        public void run() {
-                            requestCopyOperation(fData);
-                        }
-                    },
+                    () -> requestCopyOperation(fData),
                     DELAY_TO_REQUEST_OPERATIONS_LATER
             );
 
@@ -988,52 +970,6 @@ public class FileDisplayActivity extends HookActivity
             super.onActivityResult(requestCode, resultCode, data);
         }
 
-    }
-
-    private void requestUploadOfFilesFromFileSystem(Intent data, int resultCode) {
-        String[] filePaths = data.getStringArrayExtra(UploadFilesActivity.EXTRA_CHOSEN_FILES);
-        if (filePaths != null) {
-            String[] remotePaths = new String[filePaths.length];
-            String remotePathBase = getCurrentDir().getRemotePath();
-            for (int j = 0; j < remotePaths.length; j++) {
-                remotePaths[j] = remotePathBase + (new File(filePaths[j])).getName();
-            }
-
-            // default, as fallback
-            int behaviour = FileUploader.LOCAL_BEHAVIOUR_FORGET;
-
-            switch (resultCode) {
-                case UploadFilesActivity.RESULT_OK_AND_MOVE:
-                    behaviour = FileUploader.LOCAL_BEHAVIOUR_MOVE;
-                    break;
-
-                case UploadFilesActivity.RESULT_OK_AND_DELETE:
-                    behaviour = FileUploader.LOCAL_BEHAVIOUR_DELETE;
-                    break;
-
-                case UploadFilesActivity.RESULT_OK_AND_DO_NOTHING:
-                    behaviour = FileUploader.LOCAL_BEHAVIOUR_FORGET;
-                    break;
-            }
-
-            FileUploader.UploadRequester requester = new FileUploader.UploadRequester();
-            requester.uploadNewFile(
-                    this,
-                    getAccount(),
-                    filePaths,
-                    remotePaths,
-                    null,           // MIME type will be detected from file name
-                    behaviour,
-                    false,          // do not create parent folder if not existent
-                    UploadFileOperation.CREATED_BY_USER,
-                    false,
-                    false
-            );
-
-        } else {
-            Log_OC.d(TAG, "User clicked on 'Update' with no selection");
-            DisplayUtils.showSnackMessage(this, R.string.filedisplay_no_file_selected);
-        }
     }
 
     private void requestUploadOfContentFromApps(Intent contentIntent, int resultCode) {
