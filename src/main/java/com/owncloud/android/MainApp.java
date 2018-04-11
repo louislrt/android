@@ -43,6 +43,7 @@ import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
 import android.view.WindowManager;
 
+import com.evernote.android.job.Job;
 import com.evernote.android.job.JobManager;
 import com.owncloud.android.authentication.AccountUtils;
 import com.owncloud.android.authentication.PassCodeManager;
@@ -163,6 +164,7 @@ public class MainApp extends MultiDexApplication {
         initSyncOperations();
         initContactsBackup();
         notificationChannels();
+        cleanManualUploads();
 
         // register global protection with pass code
         registerActivityLifecycleCallbacks(new ActivityLifecycleCallbacks() {
@@ -367,6 +369,25 @@ public class MainApp extends MultiDexApplication {
         }
     }
     
+
+    private void cleanManualUploads() {
+        ArbitraryDataProvider arbitraryDataProvider = new ArbitraryDataProvider(getContentResolver());
+        boolean jobRunning = false;
+        for (Job job : JobManager.instance().getAllJobs()) {
+            if (!job.isFinished()) {
+                jobRunning = true;
+                break;
+            }
+        }
+        
+        if (!jobRunning) {
+            new Thread(() -> {
+                arbitraryDataProvider.deleteKeyLike("upload_queue_move%");
+                arbitraryDataProvider.deleteKeyLike("upload_queue_delete%");
+                arbitraryDataProvider.deleteKeyLike("upload_queue_nothing%");
+            }).start();
+        }
+    }
 
     public static Context getAppContext() {
         return MainApp.mContext;
