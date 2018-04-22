@@ -209,6 +209,8 @@ public class ArbitraryDataProvider {
                     values.put(currentDir, new HashSet<>(valuesList));
                 }
             }
+            
+            cursor.close();
         } else {
             Log_OC.e(TAG, "DB error restoring arbitrary values.");
         }
