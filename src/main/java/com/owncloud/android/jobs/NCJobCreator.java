@@ -43,8 +43,8 @@ public class NCJobCreator implements JobCreator {
                 return new OfflineSyncJob();
             case NotificationJob.TAG:
                 return new NotificationJob();
-            case ProcessManualUploadQueue.TAG:
-                return new ProcessManualUploadQueue();
+            case ProcessManualUploadQueueJob.TAG:
+                return new ProcessManualUploadQueueJob();
             default:
                 return null;
         }
