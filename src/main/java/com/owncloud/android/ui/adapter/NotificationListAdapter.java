@@ -32,7 +32,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.GenericRequestBuilder;
@@ -64,6 +63,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * This Adapter populates a ListView with all notifications for an account within the app.
@@ -114,7 +116,8 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
             Button button = new Button(notificationsActivity);
             button.setText(action.label);
             if (action.primary) {
-                button.getBackground().setColorFilter(ThemeUtils.primaryColor(notificationsActivity, true), PorterDuff.Mode.SRC_ATOP);
+                button.getBackground().setColorFilter(ThemeUtils.primaryColor(notificationsActivity, true),
+                        PorterDuff.Mode.SRC_ATOP);
                 button.setTextColor(ThemeUtils.fontColor(notificationsActivity));
             }
 
@@ -208,21 +211,20 @@ public class NotificationListAdapter extends RecyclerView.Adapter<NotificationLi
     }
 
     static class NotificationViewHolder extends RecyclerView.ViewHolder {
-        private final RelativeLayout layout;
-        private final ImageView icon;
-        private final TextView subject;
-        private final TextView message;
-        private final TextView dateTime;
-        private final LinearLayout buttons;
+        @BindView(R.id.notification_icon)
+        ImageView icon;
+        @BindView(R.id.notification_subject)
+        TextView subject;
+        @BindView(R.id.notification_message)
+        TextView message;
+        @BindView(R.id.notification_datetime)
+        TextView dateTime;
+        @BindView(R.id.notification_buttons)
+        LinearLayout buttons;
 
         private NotificationViewHolder(View itemView) {
             super(itemView);
-            layout = itemView.findViewById(R.id.notification_layout);
-            icon = itemView.findViewById(R.id.notification_icon);
-            subject = itemView.findViewById(R.id.notification_subject);
-            message = itemView.findViewById(R.id.notification_message);
-            dateTime = itemView.findViewById(R.id.notification_datetime);
-            buttons = itemView.findViewById(R.id.notification_buttons);
+            ButterKnife.bind(this, itemView);
         }
     }
 }
